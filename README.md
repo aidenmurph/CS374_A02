@@ -1,9 +1,22 @@
+/*
+* Name: Aiden Murphy
+* Student Number: 934475534
+* CS374: Operating Systems 1
+* Assignment 1: Movies
+* Due Date: 04/17/2024
+* Description: Read a CSV file and process the data for the user to interact with
+*/
+
 ----------------------- For Grading -----------------------
+
 To compile:
 gcc --std=c99 -o load loadMovies.c
 
 To run:
 ./load
+
+To clean:
+make clean
 
 ---------------------- The Assignment ---------------------
 

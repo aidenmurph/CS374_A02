@@ -15,6 +15,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <unistd.h>
+#include <pwd.h>
 
 bool fileExists(char* fileName)
 {
@@ -76,10 +78,44 @@ char* smallestFile(DIR* dir, struct dirent* entry, struct stat fileStats, off_t 
             if(fileStats.st_size > minSize)
             {
                 minSize = fileStats.st_size;
-                strcpy(minFileName, entry->d_name);            
+                strcpy(minFileName, entry->d_name);          
             }
         }
     }
     printf("Smallest file is %s\n", minFileName);
     return minFileName;
 }
+
+char* createNewDirectory()
+{
+    //get info for directory name
+    uid_t uid = getuid();
+    struct passwd *pw = getpwuid(uid);
+    //printf("uid = %d\n", uid);
+    //printf("pw_name = %s\n", pw->pw_name);
+    long randomNum = (random() % 99999) + 1;
+    char randomNumStr[4];
+    sprintf(randomNumStr, "%ld", randomNum);
+    //printf("randomNum = %ld\n", randomNum);
+
+    //create the new directory name
+    char newDirName[256]; 
+    strcpy(newDirName, pw->pw_name);
+    strcat(newDirName, ".movies.");
+    strcat(newDirName, randomNumStr);
+    //make directory
+    mkdir(newDirName, 750);
+    printf("Created new directory %s\n", newDirName);
+    return newDirName;
+}
+
+void parseFiles(char* dirName, )
+{
+    DIR* dirIn = opendir(".");
+    DIR* dirOut = opendir(dirName);
+    struct list *movieList = createList();
+    // readCSVFile(, movieList);
+
+
+}
+

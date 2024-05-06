@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
+#include <time.h>
 
 
 int chooseOutput();
 
 int main()
 {
+    srandom(time(0));
     bool again = false;
     int choice;
     do
@@ -91,5 +92,8 @@ int chooseOutput()
                         break;
                 }
             } while (fileChoice < 1 || fileChoice > 3);
+            char* newDir = createNewDirectory();
+            printf("Chosen file name: %s\n", chosenFileName);
+            parseFiles(newDir);
             return 0;
 }

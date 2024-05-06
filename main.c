@@ -92,8 +92,9 @@ int chooseOutput()
                         break;
                 }
             } while (fileChoice < 1 || fileChoice > 3);
-            char* newDir = createNewDirectory();
+            char newDirName[256]; 
+            createNewDirectory(newDirName);
             printf("Chosen file name: %s\n", chosenFileName);
-            parseFiles(newDir);
+            parseFiles(newDirName, chosenFileName);
             return 0;
 }

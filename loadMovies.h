@@ -10,7 +10,7 @@ bool fileExists(char*);
 char* largestFile(DIR*, struct dirent*, struct stat, off_t, char[256]);
 char* smallestFile(DIR*, struct dirent*, struct stat, off_t, char[256]);
 
-char* createNewDirectory();
-void parseFiles(char*);
+void createNewDirectory(char*);
+void parseFiles(char*, char*);
 
 #endif

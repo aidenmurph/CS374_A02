@@ -4,7 +4,7 @@
  * Citation: https://github.com/aidenmurph/CS374_Assignment01
  */
 
-#include <loadMovies.h>
+#include "loadMovies.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

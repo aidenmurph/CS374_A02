@@ -8,6 +8,7 @@
 */
 
 #include "loadMovies.h"
+#include "movies.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,7 +87,7 @@ char* smallestFile(DIR* dir, struct dirent* entry, struct stat fileStats, off_t 
     return minFileName;
 }
 
-char* createNewDirectory()
+void createNewDirectory(char* directory)
 {
     //get info for directory name
     uid_t uid = getuid();
@@ -106,15 +107,15 @@ char* createNewDirectory()
     //make directory
     mkdir(newDirName, 750);
     printf("Created new directory %s\n", newDirName);
-    return newDirName;
+    directory = newDirName;
 }
 
-void parseFiles(char* dirName, )
+void parseFiles(char* dirName, char* inFile)
 {
     DIR* dirIn = opendir(".");
     DIR* dirOut = opendir(dirName);
     struct list *movieList = createList();
-    // readCSVFile(, movieList);
+    readCSVFile(inFile, movieList);
 
 
 }

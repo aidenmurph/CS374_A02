@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include <limits.h>
+#include <string.h>
 
 
 int chooseOutput();
@@ -45,7 +47,6 @@ int chooseOutput()
     DIR* dir = opendir(".");
     struct dirent* entry;
     struct stat fileStats;
-    off_t chosenSize = -1;
     char chosenFileName[256];
     int fileChoice;
             do
@@ -68,23 +69,26 @@ int chooseOutput()
                     case 1:
                         printf("\nLargest file chosen\n");
                         //printf("Run largestFile()\n");
-                        largestFile(dir, entry, fileStats, chosenSize, chosenFileName);
+                        largestFile(dir, entry, fileStats, -1, chosenFileName);
                         break;
                     case 2:
                         printf("\nSmallest file chosen\n");
                         //printf("Run smallestFile()\n");
-                        smallestFile(dir, entry, fileStats, chosenSize, chosenFileName);
+                        smallestFile(dir, entry, fileStats, ULLONG_MAX, chosenFileName);
                         break;
                     case 3:
-                        printf("\nEnter the complete file name: ");
+                        printf("\nUser specified file chosen\n");
+                        printf("Enter the complete file name: ");
                         char fileName[256];
-                        scanf("%s", fileName);
-                        printf("User specified file chosen\n");
-                        //printf("Run userFile(%s)\n", fileName);
+                        scanf("%s", fileName);                        //printf("Run userFile(%s)\n", fileName);
                         if(!fileExists(fileName))
                         {
-                            printf("File does not exist, please try again\n");
+                            printf("\nFile does not exist, please try again\n");
                             fileChoice = 0;
+                        }
+                        else
+                        {
+                            strcpy(chosenFileName, fileName);
                         }
                         break;
                     default:
@@ -92,10 +96,10 @@ int chooseOutput()
                         break;
                 }
             } while (fileChoice < 1 || fileChoice > 3);
-            printf("\noutside of loop\n");
+            // printf("\noutside of loop\n");
             closedir(dir);
-            char *newDirName = createNewDirectory();
             printf("Chosen file name: %s\n", chosenFileName);
+            char *newDirName = createNewDirectory();
             parseFiles(newDirName, chosenFileName);
 
             free(newDirName);

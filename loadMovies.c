@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pwd.h>
+#include <limits.h>
 
 bool fileExists(char* fileName)
 {
@@ -63,6 +64,7 @@ char* largestFile(DIR* dir, struct dirent* entry, struct stat fileStats, off_t m
 
 char* smallestFile(DIR* dir, struct dirent* entry, struct stat fileStats, off_t minSize, char minFileName[256])
 {
+    printf("minFileName: %s\n", minFileName);
     while((entry = readdir(dir)) != NULL)
     {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) 
@@ -70,17 +72,18 @@ char* smallestFile(DIR* dir, struct dirent* entry, struct stat fileStats, off_t 
             continue;
         }
         //debug print
-        //printf("Checking file %s\n", entry->d_name);
+        printf("Checking file %s\n", entry->d_name);
         //if the file has the right prefix and suffix,
         if(strncmp(entry->d_name, "movies_", 7) == 0 && strstr(entry->d_name, ".csv") != NULL)
         {
             //get the file size
             stat(entry->d_name, &fileStats);
             //if the file size is larger than the current max size, update the max size and file name
-            if(fileStats.st_size > minSize)
+            if(fileStats.st_size < minSize || minSize == ULLONG_MAX)
             {
                 minSize = fileStats.st_size;
-                strcpy(minFileName, entry->d_name);          
+                strcpy(minFileName, entry->d_name);  
+                printf("New min file %s\n", minFileName);        
             }
         }
     }
@@ -144,13 +147,13 @@ void parseFiles(char* dirName, char* pFile)
          tokens[0] = strtok( dupLine, delim );
          tokens[1] = strtok( NULL, delim );
          year = atoi( tokens[ 1 ] );
-         printf ("Title %s ; Year %i\n" , tokens[0], year);
+         //printf ("Title %s ; Year %i\n" , tokens[0], year);
 
         //create the year file name
         char yearFileName[10];
         strcpy(yearFileName, tokens[1]);
         strcat(yearFileName, ".txt");
-        printf ("Year file %s\n" , yearFileName);
+        //printf ("Year file %s\n" , yearFileName);
 
         //concat with the directory name
         char filePath[256];
@@ -158,7 +161,7 @@ void parseFiles(char* dirName, char* pFile)
         strcat(filePath, dirName);
         strcat(filePath, "/");
         strcat(filePath, yearFileName);
-        printf ("Year file path %s\n" , filePath);
+        //printf ("Year file path %s\n" , filePath);
 
         //check if the year has been added
         bool added = false;
@@ -176,6 +179,7 @@ void parseFiles(char* dirName, char* pFile)
                 fprintf(of, "%s\n", tokens[0]);
                 fclose(of);
                 added = true;
+                break;
             }
         }
         if(!added)

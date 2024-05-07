@@ -67,12 +67,12 @@ int chooseOutput()
                 {
                     case 1:
                         printf("\nLargest file chosen\n");
-                        printf("Run largestFile()\n");
+                        //printf("Run largestFile()\n");
                         largestFile(dir, entry, fileStats, chosenSize, chosenFileName);
                         break;
                     case 2:
                         printf("\nSmallest file chosen\n");
-                        printf("Run smallestFile()\n");
+                        //printf("Run smallestFile()\n");
                         smallestFile(dir, entry, fileStats, chosenSize, chosenFileName);
                         break;
                     case 3:
@@ -80,7 +80,7 @@ int chooseOutput()
                         char fileName[256];
                         scanf("%s", fileName);
                         printf("User specified file chosen\n");
-                        printf("Run userFile(%s)\n", fileName);
+                        //printf("Run userFile(%s)\n", fileName);
                         if(!fileExists(fileName))
                         {
                             printf("File does not exist, please try again\n");
@@ -92,9 +92,12 @@ int chooseOutput()
                         break;
                 }
             } while (fileChoice < 1 || fileChoice > 3);
-            char newDirName[256]; 
-            createNewDirectory(newDirName);
+            printf("\noutside of loop\n");
+            closedir(dir);
+            char *newDirName = createNewDirectory();
             printf("Chosen file name: %s\n", chosenFileName);
             parseFiles(newDirName, chosenFileName);
+
+            free(newDirName);
             return 0;
 }

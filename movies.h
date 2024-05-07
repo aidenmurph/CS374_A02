@@ -11,7 +11,7 @@ void appendList(struct list* movieList, struct movie* newMovie);
 //movie list creation functions
 struct movie* createMovie(char* title, int year, char* languages[], double rating);
 void parseLanguages(char* unparsedLanguages, char* languages[]);
-void readCSVFile(char* inputFile, struct list* movieList);
+void readCSVFile(char* inputFile);
 //memory management
 void freeMovie(struct movie* movie);
 void freeList(struct list* movieList);

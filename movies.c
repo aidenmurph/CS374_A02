@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 //strdup wasn't working correctly so I had to create my own
 char* strdup(const char* s)
@@ -124,49 +126,62 @@ void parseLanguages(char* unparsedLanguages, char* languages[])
     return;
 }
 
-void readCSVFile(char* pFile, struct list* movieList)
-{
+void readCSVFile(char* pFile)
+{ 
+    //create years array to track which years have been added
+    int years[2021-1900] = {0};
+    //line max
     const int LINE_MAX = 1024;
     FILE *fptr;
     // Open a file in read mode
-     printf ("pre fptr  \n" );
     fptr = fopen(pFile, "r");
-     printf ("post fptr  \n" );
     //create line and skip header line
-    //char* line = malloc(LINE_MAX);
-    char line[1024]; 
-    //fgets(line, LINE_MAX, fptr); 
-    fgets(line, 1024, fptr); 
-    //create a movie for each file and add it to the linked list
+    char line[LINE_MAX]; 
+    fgets(line, LINE_MAX, fptr); 
     const char delim[2] = ","; 
-    char * title;
-   //while (fgets(line, LINE_MAX, fptr))
-   while (fgets(line, 1024 , fptr))
+
+    //loop variables
+    char* title;
+    int year;
+    int fileDescriptor;
+    //read the file
+    while (fgets(line, 1024 , fptr))
     {
          //parse the line
          char* dupLine = strdup( line );
-         char* tokens[5];
-         int inx = 0;
-         char * tok = strtok( dupLine, delim );
-         while ( tok != NULL  && inx < 4 ) {
-             printf( "have tok %s\n" , tok );
-             tokens[ inx ++ ] = tok;    
-             tok =  strtok( NULL , delim );
-         }
-         int year = atoi( tokens[ 1 ] );
-         double rating = atof( tokens[ 3 ] );
-         printf ("Title %s year %i rating  %f\n" , tokens[0], year, rating );
-         char* languages[5];
-         parseLanguages(tokens[2], languages);
-         printf ("post parse\n" );
-         struct movie* newMovie = createMovie(tokens[0], year, languages, rating);
-         //add the movie to the movie list
-         appendList(movieList, newMovie);
+         char* tokens[2];
+         tokens[0] = strtok( dupLine, delim );
+         tokens[1] = strtok( NULL, delim );
+         title = tokens[0];
+         year = atoi( tokens[ 1 ] );
+         printf ("Title %s ; Year %i\n" , tokens[0], year);
+        //check if the year has been added
+        char yearFile[9];
+        if (!years[year-1900])
+        {
+            years[year-1900] = 1;
+            strcpy(yearFile, tokens[1]);
+            strcat(yearFile, ".txt\n");
+            // printf ("Year file %s\n" , yearFile);
+            fileDescriptor = open(yearFile, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP);
+            //check file existence
+            if (fileDescriptor == -1) {
+            fprintf(stderr, "Error: Unable to open or create the file %s\n", yearFile);
+            exit(EXIT_FAILURE);
+            }
+            //check file permissions
+            if (fchmod(fileDescriptor, S_IRUSR | S_IWUSR | S_IRGRP) == -1) {
+            perror("Error setting file permissions");
+            close(fileDescriptor);
+            exit(EXIT_FAILURE);
+            }
+            write(fileDescriptor, title, strlen(title));
+        }
+        else
+        {
+
+        }
     }
-
-
-    // Alert user that file is processed
-    printf("Processed file %s and parsed data for 24 movies", pFile);
     //close file
     fclose(fptr);
     return;

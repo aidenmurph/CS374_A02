@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <pwd.h>
 
 bool fileExists(char* fileName)
@@ -42,7 +43,7 @@ char* largestFile(DIR* dir, struct dirent* entry, struct stat fileStats, off_t m
             continue;
         }
         //debug print
-        printf("Checking file %s\n", entry->d_name);
+        //printf("Checking file %s\n", entry->d_name);
         //if the file has the right prefix and suffix,
         if(strncmp(entry->d_name, "movies_", 7) == 0 && strstr(entry->d_name, ".csv") != NULL)
         {
@@ -69,7 +70,7 @@ char* smallestFile(DIR* dir, struct dirent* entry, struct stat fileStats, off_t 
             continue;
         }
         //debug print
-        printf("Checking file %s\n", entry->d_name);
+        //printf("Checking file %s\n", entry->d_name);
         //if the file has the right prefix and suffix,
         if(strncmp(entry->d_name, "movies_", 7) == 0 && strstr(entry->d_name, ".csv") != NULL)
         {
@@ -87,36 +88,128 @@ char* smallestFile(DIR* dir, struct dirent* entry, struct stat fileStats, off_t 
     return minFileName;
 }
 
-void createNewDirectory(char* directory)
-{
-    //get info for directory name
+char* createNewDirectory() {
+    // Get info for directory name
     uid_t uid = getuid();
     struct passwd *pw = getpwuid(uid);
-    //printf("uid = %d\n", uid);
-    //printf("pw_name = %s\n", pw->pw_name);
     long randomNum = (random() % 99999) + 1;
-    char randomNumStr[4];
+    char randomNumStr[6];
     sprintf(randomNumStr, "%ld", randomNum);
-    //printf("randomNum = %ld\n", randomNum);
 
-    //create the new directory name
-    char newDirName[256]; 
+    // Create the new directory name
+    char *newDirName = malloc(strlen(pw->pw_name) + strlen(randomNumStr) + 11); // Length of ".movies." + 1 for null terminator
+    if (newDirName == NULL) {
+        fprintf(stderr, "Error: Failed to allocate memory for directory name\n");
+        exit(EXIT_FAILURE);
+    }
     strcpy(newDirName, pw->pw_name);
     strcat(newDirName, ".movies.");
     strcat(newDirName, randomNumStr);
-    //make directory
-    mkdir(newDirName, 750);
+
+    // Make directory
+    if (mkdir(newDirName, 0750) != 0) {
+        fprintf(stderr, "Error: Failed to create directory %s\n", newDirName);
+        free(newDirName);
+        exit(EXIT_FAILURE);
+    }
     printf("Created new directory %s\n", newDirName);
-    directory = newDirName;
+    return newDirName;
 }
 
-void parseFiles(char* dirName, char* inFile)
+
+void parseFiles(char* dirName, char* pFile)
 {
-    DIR* dirIn = opendir(".");
-    DIR* dirOut = opendir(dirName);
-    struct list *movieList = createList();
-    readCSVFile(inFile, movieList);
+    //create years array to track which years have been added
+    int *years = NULL;
+    int size = 0;
 
+    // Open a file in read mode
+    FILE *fptr;
+    fptr = fopen(pFile, "r");
 
+    //create line and skip header line
+    char line[1024]; 
+    fgets(line, 1024, fptr); 
+    const char delim[2] = ","; 
+
+    //loop variables
+    int year;
+    int fileDescriptor;
+    //read the file
+    while (fgets(line, 1024 , fptr))
+    {
+         //parse the line
+         char* dupLine = strdup( line );
+         char* tokens[2];
+         tokens[0] = strtok( dupLine, delim );
+         tokens[1] = strtok( NULL, delim );
+         year = atoi( tokens[ 1 ] );
+         printf ("Title %s ; Year %i\n" , tokens[0], year);
+
+        //create the year file name
+        char yearFileName[10];
+        strcpy(yearFileName, tokens[1]);
+        strcat(yearFileName, ".txt\n");
+        printf ("Year file %s\n" , yearFileName);
+
+        //check if the year has been added
+        bool added = false;
+        for(int i = 0; i < size; i++)
+        {
+            if(years[i] == year)
+            {
+                FILE* of = fopen(yearFileName, "a");
+                if (of == NULL) 
+                {
+                    fprintf(stderr, "Error opening file: %s\n", yearFileName);
+                    fclose(fptr);
+                    return;
+                }
+                fprintf(of, "%s\n", tokens[0]);
+                fclose(of);
+                added = true;
+            }
+        }
+        if(!added)
+        {
+            FILE* of = fopen(yearFileName, "w");
+            if (of == NULL) 
+            {
+                    fprintf(stderr, "Error opening file: %s\n", yearFileName);
+                    fclose(fptr);
+                    return;
+            }
+            fprintf(of, "%s\n", tokens[0]);
+            fclose(of);
+            size++;
+            years = realloc(years, size * sizeof(int));
+            years[size - 1] = year;
+
+            //if year not found, add it to the array
+                years = realloc(years, (size + 1) * sizeof(int));
+                years[size] = year;
+                size++;
+                //create the file
+                fileDescriptor = open(yearFileName, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP);
+                //check file existence
+                if (fileDescriptor == -1) {
+                fprintf(stderr, "Error: Unable to open or create the file %s\n", yearFileName);
+                exit(EXIT_FAILURE);
+                }
+                //check file permissions
+                if (fchmod(fileDescriptor, S_IRUSR | S_IWUSR | S_IRGRP) == -1) {
+                perror("Error setting file permissions");
+                close(fileDescriptor);
+                exit(EXIT_FAILURE);
+                }
+                write(fileDescriptor, tokens[0], strlen(tokens[0]));
+        }
+    }
+    //close file
+    fclose(fptr);
+    //free mem
+    free(years);
+
+    return;
 }
 

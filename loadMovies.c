@@ -149,8 +149,16 @@ void parseFiles(char* dirName, char* pFile)
         //create the year file name
         char yearFileName[10];
         strcpy(yearFileName, tokens[1]);
-        strcat(yearFileName, ".txt\n");
+        strcat(yearFileName, ".txt");
         printf ("Year file %s\n" , yearFileName);
+
+        //concat with the directory name
+        char filePath[256];
+        strcpy(filePath, "./");
+        strcat(filePath, dirName);
+        strcat(filePath, "/");
+        strcat(filePath, yearFileName);
+        printf ("Year file path %s\n" , filePath);
 
         //check if the year has been added
         bool added = false;
@@ -158,10 +166,10 @@ void parseFiles(char* dirName, char* pFile)
         {
             if(years[i] == year)
             {
-                FILE* of = fopen(yearFileName, "a");
+                FILE* of = fopen(filePath, "a");
                 if (of == NULL) 
                 {
-                    fprintf(stderr, "Error opening file: %s\n", yearFileName);
+                    fprintf(stderr, "Error opening file: %s\n", filePath);
                     fclose(fptr);
                     return;
                 }
@@ -172,10 +180,10 @@ void parseFiles(char* dirName, char* pFile)
         }
         if(!added)
         {
-            FILE* of = fopen(yearFileName, "w");
+            FILE* of = fopen(filePath, "w");
             if (of == NULL) 
             {
-                    fprintf(stderr, "Error opening file: %s\n", yearFileName);
+                    fprintf(stderr, "Error opening file: %s\n", filePath);
                     fclose(fptr);
                     return;
             }
@@ -190,10 +198,10 @@ void parseFiles(char* dirName, char* pFile)
                 years[size] = year;
                 size++;
                 //create the file
-                fileDescriptor = open(yearFileName, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP);
+                fileDescriptor = open(filePath, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP);
                 //check file existence
                 if (fileDescriptor == -1) {
-                fprintf(stderr, "Error: Unable to open or create the file %s\n", yearFileName);
+                fprintf(stderr, "Error: Unable to open or create the file %s\n", filePath);
                 exit(EXIT_FAILURE);
                 }
                 //check file permissions
